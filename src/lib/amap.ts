@@ -113,19 +113,19 @@ export async function searchPlace(keyword: string, city: string = ''): Promise<R
 
 // 取得導航連結
 export function getNavigationLinks(
-  destLng: number,
-  destLat: number,
   destName: string
-): { amap: string; google: string; apple: string } {
+): { amapScheme: string; amapWeb: string; google: string; apple: string } {
   const encodedName = encodeURIComponent(destName);
 
   return {
-    // 高德地圖
-    amap: `https://uri.amap.com/navigation?to=${destLng},${destLat},${encodedName}&mode=bus&coordinate=gaode`,
+    // 高德地圖 App scheme（直接開 App）
+    amapScheme: `amapuri://route/plan/?dname=${encodedName}&dev=0&t=1`,
+    // 高德地圖網頁版（App 未安裝時的備案）
+    amapWeb: `https://uri.amap.com/search?keyword=${encodedName}`,
     // Google Maps
-    google: `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=transit`,
+    google: `https://www.google.com/maps/dir/?api=1&destination=${encodedName}&travelmode=transit`,
     // Apple Maps
-    apple: `https://maps.apple.com/?daddr=${destLat},${destLng}&dirflg=r`,
+    apple: `https://maps.apple.com/?daddr=${encodedName}&dirflg=r`,
   };
 }
 

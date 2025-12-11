@@ -62,11 +62,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       <NavigationModal
         isOpen={showNavModal}
         onClose={() => setShowNavModal(false)}
-        destination={{
-          lng: restaurant.location.lng,
-          lat: restaurant.location.lat,
-          name: restaurant.name,
-        }}
+        destination={{ name: restaurant.name }}
       />
     </>
   );

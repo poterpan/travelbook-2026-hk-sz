@@ -101,7 +101,7 @@ export default function TransportCard({ activity }: TransportCardProps) {
       <NavigationModal
         isOpen={showNavModal}
         onClose={() => setShowNavModal(false)}
-        destination={{ lng, lat, name: activity.name }}
+        destination={{ name: activity.location || activity.name }}
       />
     </>
   );

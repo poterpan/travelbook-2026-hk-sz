@@ -150,7 +150,7 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
       <NavigationModal
         isOpen={showNavModal}
         onClose={() => setShowNavModal(false)}
-        destination={{ lng, lat, name: activity.name }}
+        destination={{ name: activity.location || activity.name }}
       />
     </>
   );

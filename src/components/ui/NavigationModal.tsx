@@ -7,8 +7,6 @@ interface NavigationModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: {
-    lng: number;
-    lat: number;
     name: string;
   };
 }
@@ -16,10 +14,32 @@ interface NavigationModalProps {
 export default function NavigationModal({ isOpen, onClose, destination }: NavigationModalProps) {
   if (!isOpen) return null;
 
-  const links = getNavigationLinks(destination.lng, destination.lat, destination.name);
+  const links = getNavigationLinks(destination.name);
 
   const handleNavigation = (url: string) => {
     window.open(url, '_blank');
+    onClose();
+  };
+
+  // 高德地圖：先嘗試開 App，若失敗則跳網頁版
+  const handleAmapNavigation = () => {
+    let hasLeft = false;
+
+    const handleBlur = () => {
+      hasLeft = true;
+    };
+
+    window.addEventListener('blur', handleBlur);
+    window.location.href = links.amapScheme;
+
+    setTimeout(() => {
+      window.removeEventListener('blur', handleBlur);
+      // 只有當頁面沒有失去焦點（App 沒開成功）時才跳網頁版
+      if (!hasLeft && !document.hidden) {
+        window.open(links.amapWeb, '_blank');
+      }
+    }, 1500);
+
     onClose();
   };
 
@@ -48,7 +68,7 @@ export default function NavigationModal({ isOpen, onClose, destination }: Naviga
         <div className="space-y-3">
           {/* 高德地圖 */}
           <button
-            onClick={() => handleNavigation(links.amap)}
+            onClick={handleAmapNavigation}
             className="w-full flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
           >
             <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">

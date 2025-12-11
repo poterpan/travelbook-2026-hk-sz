@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
-import { MapPin } from 'lucide-react';
+import { Navigation } from 'lucide-react';
+import NavigationModal from '@/components/ui/NavigationModal';
 
 // 預設景點攻略資料
 const attractions = [
@@ -81,6 +82,13 @@ const mustEatList = [
 
 export default function ExplorePage() {
   const [activeTab, setActiveTab] = useState<'attractions' | 'food'>('attractions');
+  const [showNavModal, setShowNavModal] = useState(false);
+  const [selectedDestination, setSelectedDestination] = useState<string>('');
+
+  const handleNavigate = (name: string) => {
+    setSelectedDestination(name);
+    setShowNavModal(true);
+  };
 
   return (
     <div className="min-h-screen">
@@ -151,16 +159,12 @@ export default function ExplorePage() {
                       </div>
                     )}
                   </div>
-                  {attraction.coordinates && (
-                    <a
-                      href={`https://uri.amap.com/marker?position=${attraction.coordinates}&name=${encodeURIComponent(attraction.name)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                      <MapPin className="w-5 h-5 text-blue-500" />
-                    </a>
-                  )}
+                  <button
+                    onClick={() => handleNavigate(attraction.name)}
+                    className="p-2 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                  >
+                    <Navigation className="w-5 h-5 text-blue-500" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -176,7 +180,7 @@ export default function ExplorePage() {
                 className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         item.city === '深圳'
@@ -189,9 +193,17 @@ export default function ExplorePage() {
                     </div>
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
                   </div>
-                  <span className="text-xs px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">
-                    {item.highlight}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">
+                      {item.highlight}
+                    </span>
+                    <button
+                      onClick={() => handleNavigate(item.name)}
+                      className="p-2 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                    >
+                      <Navigation className="w-5 h-5 text-blue-500" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -199,6 +211,13 @@ export default function ExplorePage() {
         )}
 
       </div>
+
+      {/* Navigation Modal */}
+      <NavigationModal
+        isOpen={showNavModal}
+        onClose={() => setShowNavModal(false)}
+        destination={{ name: selectedDestination }}
+      />
     </div>
   );
 }
