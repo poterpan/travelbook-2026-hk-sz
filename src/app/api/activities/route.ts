@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAllActivities, getActivitiesByDay, createActivity, updateActivity } from '@/lib/notion';
 
+export const runtime = 'edge';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

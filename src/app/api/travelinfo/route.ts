@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getTravelInfo, createTravelInfo } from '@/lib/notion';
 
+export const runtime = 'edge';
+
 export async function GET() {
   try {
     const info = await getTravelInfo();
