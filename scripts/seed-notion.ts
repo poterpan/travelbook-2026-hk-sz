@@ -14,104 +14,519 @@ const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
 const ITINERARY_DB = process.env.NOTION_ITINERARY_DB!;
 const ACTIVITIES_DB = process.env.NOTION_ACTIVITIES_DB!;
+const FLIGHTS_DB = process.env.NOTION_FLIGHTS_DB!;
+const ATTRACTIONS_DB = process.env.NOTION_ATTRACTIONS_DB!;
 const TRAVELINFO_DB = process.env.NOTION_TRAVELINFO_DB!;
 
+// ============================================
+// 航班資料
+// ============================================
+const flights = [
+  {
+    name: '去程',
+    flightNo: 'UO115',
+    date: '2026-01-28',
+    departureAirport: '台北桃園 TPE T1',
+    arrivalAirport: '香港 HKG T1',
+    departureTime: '17:40',
+    arrivalTime: '19:40',
+    checkInCounter: '',
+    gate: '',
+    seat: '',
+    baggageAllowance: '20kg 托運 + 7kg 手提',
+    bookingRef: '',
+    notes: '提前2小時到機場',
+    order: 1,
+  },
+  {
+    name: '回程',
+    flightNo: 'HB706',
+    date: '2026-02-01',
+    departureAirport: '香港 HKG T1',
+    arrivalAirport: '台北桃園 TPE T1',
+    departureTime: '20:10',
+    arrivalTime: '22:15',
+    checkInCounter: '',
+    gate: '',
+    seat: '',
+    baggageAllowance: '20kg 托運 + 7kg 手提',
+    bookingRef: '',
+    notes: '',
+    order: 2,
+  },
+];
+
+// ============================================
+// 景點/美食攻略資料
+// ============================================
+const attractions = [
+  // 深圳景點
+  {
+    name: 'SEG電子市場（賽格廣場）',
+    city: '深圳',
+    type: '購物',
+    description: '亞洲最大的電子市場，9層樓，手機配件、電腦零件、數碼產品應有盡有',
+    tips: '記得殺價！開價通常可以打6-7折',
+    highlight: '',
+    mustBuy: ['手機配件', '耐機設備', '科技小物'],
+    order: 1,
+  },
+  {
+    name: '華僑城創意園 OCT-LOFT',
+    city: '深圳',
+    type: '景點',
+    description: '文青拍照聖地，類似台北華山文創園區，有各種藝術展覽和特色咖啡廳',
+    tips: '適合下午去，可以待到傍晚拍照',
+    highlight: '',
+    mustBuy: [],
+    order: 2,
+  },
+  {
+    name: '深圳灣公園',
+    city: '深圳',
+    type: '景點',
+    description: '海濱長廊，可遠眺香港，看夕陽絕佳地點',
+    tips: '傍晚5-6點去最美，記得帶水',
+    highlight: '',
+    mustBuy: [],
+    order: 3,
+  },
+  // 香港景點
+  {
+    name: '太平山頂',
+    city: '香港',
+    type: '景點',
+    description: '香港最著名的觀景台，可以俯瞰整個維多利亞港和香港島',
+    tips: '建議傍晚上去看夜景，山頂纜車來回HK$88',
+    highlight: '',
+    mustBuy: [],
+    order: 4,
+  },
+  {
+    name: '女人街（登打士街）',
+    city: '香港',
+    type: '購物',
+    description: '香港最著名的街頭市集，服飾、小物、紀念品應有盡有',
+    tips: '可以講價，但不像深圳那麼大的議價空間',
+    highlight: '',
+    mustBuy: ['紀念品', '服飾', '小飾品'],
+    order: 5,
+  },
+  {
+    name: '維多利亞港',
+    city: '香港',
+    type: '景點',
+    description: '香港最著名的海港，每晚8點有幻彩詠香江燈光秀',
+    tips: '天星小輪只要HK$3.4，很值得體驗',
+    highlight: '',
+    mustBuy: [],
+    order: 6,
+  },
+  // 深圳美食
+  {
+    name: '八合里牛肉火鍋',
+    city: '深圳',
+    type: '餐廳',
+    description: '潮汕牛肉火鍋',
+    tips: '新鮮牛肉現切，必點吊龍、胸口油',
+    highlight: '新鮮牛肉',
+    mustBuy: [],
+    order: 10,
+  },
+  {
+    name: '潤園四季',
+    city: '深圳',
+    type: '餐廳',
+    description: '椰子雞火鍋',
+    tips: '椰子水煮雞，清甜好喝',
+    highlight: '深圳特色',
+    mustBuy: [],
+    order: 11,
+  },
+  {
+    name: '點都德',
+    city: '深圳',
+    type: '餐廳',
+    description: '廣式早茶點心',
+    tips: '蝦餃、燒賣、腸粉必點',
+    highlight: '廣東點心',
+    mustBuy: [],
+    order: 12,
+  },
+  // 香港美食
+  {
+    name: '九記牛腩',
+    city: '香港',
+    type: '餐廳',
+    description: '清湯牛腩、咖哩牛腩',
+    tips: '要排隊，只收現金',
+    highlight: '米其林推薦',
+    mustBuy: [],
+    order: 20,
+  },
+  {
+    name: '蘭芳園',
+    city: '香港',
+    type: '餐廳',
+    description: '絲襪奶茶創始店',
+    tips: '必點絲襪奶茶、蔥油雞扒撈丁',
+    highlight: '絲襪奶茶創始店',
+    mustBuy: [],
+    order: 21,
+  },
+  {
+    name: '澳洲牛奶公司',
+    city: '香港',
+    type: '餐廳',
+    description: '炒蛋多士、燉奶',
+    tips: '要排隊但翻桌快，店員態度很兇但味道很好',
+    highlight: '炒蛋多士必吃',
+    mustBuy: [],
+    order: 22,
+  },
+  {
+    name: '鏞記酒家',
+    city: '香港',
+    type: '餐廳',
+    description: '燒鵝專門店',
+    tips: '價位較高但值得',
+    highlight: '米其林星級',
+    mustBuy: [],
+    order: 23,
+  },
+  {
+    name: '添好運',
+    city: '香港',
+    type: '餐廳',
+    description: '平價米其林點心',
+    tips: '必點酥皮焗叉燒包',
+    highlight: '米其林點心',
+    mustBuy: [],
+    order: 24,
+  },
+];
+
+// ============================================
+// 旅遊資訊資料
+// ============================================
+const travelInfo = [
+  // 住宿
+  {
+    name: '凱季星畔酒店',
+    category: '住宿',
+    content: '',
+    subContent: '華強北街道振華路21號',
+    city: '深圳',
+    dateRange: '1/28-1/30（2晚）',
+    phone: '',
+    important: false,
+    order: 1,
+  },
+  {
+    name: '香港金堡賓館',
+    category: '住宿',
+    content: '',
+    subContent: '旺角彌敦道607號新興大廈21樓2108室',
+    city: '香港',
+    dateRange: '1/30-2/1（2晚）',
+    phone: '',
+    important: false,
+    order: 2,
+  },
+  // 緊急聯絡
+  {
+    name: '台北駐港經濟文化辦事處',
+    category: '緊急聯絡',
+    content: '護照遺失、緊急事件',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '+852 2525 8316',
+    important: true,
+    order: 10,
+  },
+  {
+    name: '香港報警',
+    category: '緊急聯絡',
+    content: '',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '999',
+    important: false,
+    order: 11,
+  },
+  {
+    name: '深圳報警',
+    category: '緊急聯絡',
+    content: '',
+    subContent: '',
+    city: '深圳',
+    dateRange: '',
+    phone: '110',
+    important: false,
+    order: 12,
+  },
+  // 伴手禮
+  {
+    name: '珍妮曲奇',
+    category: '伴手禮',
+    content: '要排隊，建議早點去',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 20,
+  },
+  {
+    name: '奇華餅家',
+    category: '伴手禮',
+    content: '蛋捲、老婆餅',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 21,
+  },
+  {
+    name: '鉅記手信',
+    category: '伴手禮',
+    content: '杏仁餅、豬肉乾',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 22,
+  },
+  {
+    name: '位元堂',
+    category: '伴手禮',
+    content: '龜苓膏、涼茶',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 23,
+  },
+  {
+    name: '屈臣氏/萬寧',
+    category: '伴手禮',
+    content: '藥妝、面膜',
+    subContent: '',
+    city: '香港',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 24,
+  },
+  // 注意事項
+  {
+    name: '深圳需要台胞證',
+    category: '注意事項',
+    content: '入境深圳必備，請提前辦理',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: true,
+    order: 30,
+  },
+  {
+    name: '深圳很多地方不收現金',
+    category: '注意事項',
+    content: '務必設定好微信/支付寶',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: true,
+    order: 31,
+  },
+  {
+    name: '需要 VPN',
+    category: '注意事項',
+    content: '深圳上 Google、IG、FB、LINE 需要翻牆',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: true,
+    order: 32,
+  },
+  {
+    name: '華強北記得殺價',
+    category: '注意事項',
+    content: '通常可以砍到6-7折',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 33,
+  },
+  {
+    name: '香港地鐵站內禁止飲食',
+    category: '注意事項',
+    content: '包括喝水，會被罰款',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: true,
+    order: 34,
+  },
+  {
+    name: '香港塑膠袋要收費',
+    category: '注意事項',
+    content: 'HK$1-2，自備環保袋',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 35,
+  },
+  // 衣著建議
+  {
+    name: '深圳/香港 1-2月：15-20°C',
+    category: '衣著建議',
+    content: '',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 40,
+  },
+  {
+    name: '建議穿著：長袖+薄外套',
+    category: '衣著建議',
+    content: '',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 41,
+  },
+  {
+    name: '偶有降雨，記得帶傘',
+    category: '衣著建議',
+    content: '',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 42,
+  },
+  {
+    name: '室內冷氣強，建議帶薄外套',
+    category: '衣著建議',
+    content: '',
+    subContent: '',
+    city: '',
+    dateRange: '',
+    phone: '',
+    important: false,
+    order: 43,
+  },
+];
+
+// ============================================
 // 行程資料
+// ============================================
 const itineraries = [
-  { name: 'Day 1 - 1/28 \u53f0\u5317\u2192\u9999\u6e2f\u2192\u6df1\u5733', date: '2026-01-28', dayNumber: 1, city: '\u6df1\u5733' },
-  { name: 'Day 2 - 1/29 \u6df1\u5733\u83ef\u5f37\u5317\u6df1\u5ea6\u904a', date: '2026-01-29', dayNumber: 2, city: '\u6df1\u5733' },
-  { name: 'Day 3 - 1/30 \u6df1\u5733\u2192\u9999\u6e2f', date: '2026-01-30', dayNumber: 3, city: '\u9999\u6e2f' },
-  { name: 'Day 4 - 1/31 \u9999\u6e2f\u7d93\u5178\u4e00\u65e5\u904a', date: '2026-01-31', dayNumber: 4, city: '\u9999\u6e2f' },
-  { name: 'Day 5 - 2/1 \u9999\u6e2f\u2192\u53f0\u5317', date: '2026-02-01', dayNumber: 5, city: '\u9999\u6e2f' },
+  { name: 'Day 1 - 1/28 台北→香港→深圳', date: '2026-01-28', dayNumber: 1, city: '深圳' },
+  { name: 'Day 2 - 1/29 深圳華強北深度遊', date: '2026-01-29', dayNumber: 2, city: '深圳' },
+  { name: 'Day 3 - 1/30 深圳→香港', date: '2026-01-30', dayNumber: 3, city: '香港' },
+  { name: 'Day 4 - 1/31 香港經典一日遊', date: '2026-01-31', dayNumber: 4, city: '香港' },
+  { name: 'Day 5 - 2/1 香港→台北', date: '2026-02-01', dayNumber: 5, city: '香港' },
 ];
 
 // Day 1 活動
 const day1Activities = [
   {
-    name: '\u53f0\u5317\u6843\u5712\u6a5f\u5834\u8d77\u98db',
+    name: '台北桃園機場起飛',
     time: '17:40',
-    type: '\u4ea4\u901a',
-    location: '\u53f0\u5317\u6843\u5712\u570b\u969b\u6a5f\u5834',
-    coordinates: '121.2332,25.0777',
-    description: '\u822a\u73ed UO115',
-    tips: '\u63d0\u524d2\u5c0f\u6642\u5230\u6a5f\u5834',
+    type: '交通',
+    location: '台北桃園國際機場',
+    description: '航班 UO115',
+    tips: '提前2小時到機場',
     price: '',
     order: 1,
   },
   {
-    name: '\u62b5\u9054\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
+    name: '抵達香港國際機場',
     time: '19:40',
-    type: '\u4ea4\u901a',
-    location: '\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
-    coordinates: '113.9145,22.3080',
-    description: '\u4e0b\u6a5f\u3001\u5165\u5883\u3001\u9818\u884c\u674e',
-    tips: '\u9810\u7559 35 \u5206\u9418',
+    type: '交通',
+    location: '香港國際機場',
+    description: '下機、入境、領行李',
+    tips: '預留 35 分鐘',
     price: '',
     order: 2,
   },
   {
-    name: '\u6a5f\u5834\u5feb\u7dda\u5230\u897f\u4e5d\u9f8d\u7ad9',
+    name: '機場快線到西九龍站',
     time: '20:15-20:45',
-    type: '\u4ea4\u901a',
-    location: '\u9999\u6e2f\u6a5f\u5834\u5feb\u7dda',
-    coordinates: '113.9145,22.3080',
-    description: '\u8eca\u7a0b\u7d0430\u5206\u9418',
+    type: '交通',
+    location: '香港機場快線',
+    description: '車程約30分鐘',
     tips: '',
     price: 'HK$115',
     order: 3,
   },
   {
-    name: '\u897f\u4e5d\u9f8d\u7ad9\u904e\u95dc\u3001\u5019\u8eca',
+    name: '西九龍站過關、候車',
     time: '20:45-21:45',
-    type: '\u4ea4\u901a',
-    location: '\u9999\u6e2f\u897f\u4e5d\u9f8d\u7ad9',
-    coordinates: '114.1619,22.3033',
-    description: '\u53d6\u7968\u3001\u904e\u95dc\u3001\u5019\u8eca\uff0c\u9810\u75591\u5c0f\u6642',
+    type: '交通',
+    location: '香港西九龍站',
+    description: '取票、過關、候車，預留1小時',
     tips: '',
     price: '',
     order: 4,
   },
   {
-    name: '\u9ad8\u9435\u5f80\u6df1\u5733\u798f\u7530\u7ad9',
+    name: '高鐵往深圳福田站',
     time: '22:14-22:32',
-    type: '\u4ea4\u901a',
-    location: '\u6df1\u5733\u798f\u7530\u7ad9',
-    coordinates: '114.0550,22.5350',
-    description: '\u8eca\u7a0b14\u5206\u9418',
-    tips: '\u63d0\u524d\u8cfc\u7968',
+    type: '交通',
+    location: '深圳福田站',
+    description: '車程14分鐘',
+    tips: '提前購票',
     price: 'HK$68-80',
     order: 5,
   },
   {
-    name: '\u5730\u9435\u52301\u865f\u7dda\u5230\u83ef\u5f37\u5317\u7ad9',
+    name: '地鐵到1號線到華強北站',
     time: '22:32-22:40',
-    type: '\u4ea4\u901a',
-    location: '\u6df1\u5733\u5730\u9435',
-    coordinates: '114.0847,22.5474',
-    description: '2\u7ad9\uff0c\u7d045\u5206\u9418',
+    type: '交通',
+    location: '深圳地鐵',
+    description: '2站，約5分鐘',
     tips: '',
-    price: '\uffe52',
+    price: '¥2',
     order: 6,
   },
   {
-    name: '\u51f1\u5b63\u661f\u7554\u9152\u5e97 Check-in',
+    name: '凱季星畔酒店 Check-in',
     time: '23:00',
-    type: '\u4f4f\u5bbf',
-    location: '\u83ef\u5f37\u5317\u8857\u9053\u632f\u83ef\u8def21\u865f',
-    coordinates: '114.0847,22.5474',
-    description: '\u6df1\u57332\u665a\u4f4f\u5bbf',
+    type: '住宿',
+    location: '華強北街道振華路21號',
+    description: '深圳2晚住宿',
     tips: '',
     price: '',
     order: 7,
   },
   {
-    name: '\u9644\u8fd1\u5403\u5bb5\u591c',
+    name: '附近吃宵夜',
     time: '23:00-00:00',
-    type: '\u9910\u98f2',
-    location: '\u83ef\u5f37\u5317\u7f8e\u98df\u57ce',
-    coordinates: '114.0860,22.5480',
-    description: '\u83ef\u5f37\u5317\u7f8e\u98df\u57ce\u6216\u4fbf\u5229\u5e97',
-    tips: '\u65e9\u9ede\u4f11\u606f',
+    type: '餐飲',
+    location: '華強北美食城',
+    description: '華強北美食城或便利店',
+    tips: '早點休息',
     price: '',
     order: 8,
   },
@@ -120,72 +535,66 @@ const day1Activities = [
 // Day 2 活動
 const day2Activities = [
   {
-    name: '\u9152\u5e97\u65e9\u9910\u6216\u9644\u8fd1\u8336\u9910\u5ef3',
+    name: '酒店早餐或附近茶餐廳',
     time: '09:00-09:30',
-    type: '\u9910\u98f2',
-    location: '\u83ef\u5f37\u5317',
-    coordinates: '114.0847,22.5474',
+    type: '餐飲',
+    location: '華強北',
     description: '',
     tips: '',
     price: '',
     order: 1,
   },
   {
-    name: 'SEG\u96fb\u5b50\u5e02\u5834\uff08\u8cfd\u683c\u5ee3\u5834\uff09',
+    name: 'SEG電子市場（賽格廣場）',
     time: '09:30-12:30',
-    type: '\u666f\u9ede',
-    location: '\u6df1\u5733\u8cfd\u683c\u5ee3\u5834',
-    coordinates: '114.0847,22.5474',
-    description: '9\u5c64\u6a13\uff0c\u6700\u5927\u6700\u6709\u540d\u7684\u96fb\u5b50\u5e02\u5834\uff0c\u624b\u6a5f\u914d\u4ef6\u3001\u96fb\u8166\u96f6\u4ef6\u3001\u6578\u78bc\u7522\u54c1',
-    tips: '\u8a18\u5f97\u6bba\u50f9\uff01\u958b\u50f9\u901a\u5e38\u53ef\u4ee5\u62536-7\u6298\uff0c\u591a\u6bd4\u50f9\u4e0d\u8981\u7b2c\u4e00\u5bb6\u5c31\u8cb7',
+    type: '景點',
+    location: '深圳賽格廣場',
+    description: '9層樓，最大最有名的電子市場，手機配件、電腦零件、數碼產品',
+    tips: '記得殺價！開價通常可以打6-7折，多比價不要第一家就買',
     price: '',
     order: 2,
-    mustBuy: ['\u624b\u6a5f\u914d\u4ef6', '\u96fb\u8166\u96f6\u4ef6', '\u6578\u78bc\u7522\u54c1'],
+    mustBuy: ['手機配件', '電腦零件', '數碼產品'],
   },
   {
-    name: '\u5348\u9910',
+    name: '午餐',
     time: '12:30-14:00',
-    type: '\u9910\u98f2',
-    location: '\u83ef\u5f37\u5317',
-    coordinates: '114.0847,22.5474',
-    description: '\u63a8\u85a6\uff1a\u9ede\u90fd\u5fb7\u3001\u6d77\u5e95\u6488\u3001\u6f6e\u6c55\u725b\u8089\u706b\u934b\u3001\u6930\u5b50\u96de\u706b\u934b',
+    type: '餐飲',
+    location: '華強北',
+    description: '推薦：點都德、海底撈、潮汕牛肉火鍋、椰子雞火鍋',
     tips: '',
-    price: '\uffe5150-200',
+    price: '¥150-200',
     order: 3,
-    mustEat: ['\u9ede\u90fd\u5fb7', '\u6d77\u5e95\u6488', '\u6f6e\u6c55\u725b\u8089\u706b\u934b'],
+    mustEat: ['點都德', '海底撈', '潮汕牛肉火鍋'],
   },
   {
-    name: '\u83ef\u50d1\u57ce\u5275\u610f\u5712 OCT-LOFT',
+    name: '華僑城創意園 OCT-LOFT',
     time: '14:00-17:00',
-    type: '\u666f\u9ede',
-    location: '\u6df1\u5733\u83ef\u50d1\u57ce\u5275\u610f\u5712',
-    coordinates: '113.9847,22.5411',
-    description: '\u6587\u9752\u62cd\u7167\u8056\u5730\uff0c\u985e\u4f3c\u53f0\u5317\u83ef\u5c71\u6587\u5275\u5712\u5340',
-    tips: '\u5730\u9435\u7d0415\u5206\u9418\u53ef\u5230',
-    price: '\u514d\u8cbb',
+    type: '景點',
+    location: '深圳華僑城創意園',
+    description: '文青拍照聖地，類似台北華山文創園區',
+    tips: '地鐵約15分鐘可到',
+    price: '免費',
     order: 4,
   },
   {
-    name: '\u665a\u9910',
+    name: '晚餐',
     time: '18:00-20:00',
-    type: '\u9910\u98f2',
-    location: '\u83ef\u5f37\u5317',
-    coordinates: '114.0847,22.5474',
-    description: '\u63a8\u85a6\uff1a\u8001\u8857\u7f8e\u98df\u8857\u3001\u7fe0\u83ef\u9910\u5ef3\u3001\u63a2\u9b5a\u70e4\u9b5a',
-    tips: '\u8a66\u8a66\u559c\u8336/\u5948\u96ea\u7684\u8336\uff08\u6df1\u5733\u767c\u8de1\u7684\u624b\u6416\u98f2\uff09',
-    price: '\uffe5100-150',
+    type: '餐飲',
+    location: '華強北',
+    description: '推薦：老街美食街、翠華餐廳、探魚烤魚',
+    tips: '試試喜茶/奈雪的茶（深圳發跡的手搖飲）',
+    price: '¥100-150',
     order: 5,
-    mustEat: ['\u559c\u8336', '\u5948\u96ea\u7684\u8336'],
+    mustEat: ['喜茶', '奈雪的茶'],
   },
   {
-    name: '\u6df1\u5733\u7063\u516c\u5712\u770b\u591c\u666f',
+    name: '深圳灣公園看夜景',
     time: '20:00-21:00',
-    type: '\u666f\u9ede',
-    location: '\u6df1\u5733\u7063\u516c\u5712',
-    coordinates: '113.9543,22.5194',
-    description: '\u6d77\u6ff1\u9577\u5eca\uff0c\u53ef\u9060\u7730\u9999\u6e2f',
-    tips: '\u6216\u56de\u9152\u5e97\u9644\u8fd1\u901b\u8857',
-    price: '\u514d\u8cbb',
+    type: '景點',
+    location: '深圳灣公園',
+    description: '海濱長廊，可遠眺香港',
+    tips: '或回酒店附近逛街',
+    price: '免費',
     order: 6,
   },
 ];
@@ -193,186 +602,170 @@ const day2Activities = [
 // Day 3 活動
 const day3Activities = [
   {
-    name: '\u83ef\u5f37\u5317\u6700\u5f8c\u63a1\u8cfc',
+    name: '華強北最後採購',
     time: '09:00-11:00',
-    type: '\u8cfc\u7269',
-    location: '\u83ef\u5f37\u5317\u96fb\u5b50\u5e02\u5834',
-    coordinates: '114.0847,22.5474',
-    description: '\u88dc\u8cb7\u907a\u6f0f\u7684\u6771\u897f\uff0c\u6700\u5f8c\u6bd4\u50f9',
+    type: '購物',
+    location: '華強北電子市場',
+    description: '補買遺漏的東西，最後比價',
     tips: '',
     price: '',
     order: 1,
   },
   {
-    name: '\u9000\u623f\u3001\u6574\u7406\u884c\u674e',
+    name: '退房、整理行李',
     time: '11:00-12:00',
-    type: '\u4f4f\u5bbf',
-    location: '\u51f1\u5b63\u661f\u7554\u9152\u5e97',
-    coordinates: '114.0847,22.5474',
+    type: '住宿',
+    location: '凱季星畔酒店',
     description: '',
     tips: '',
     price: '',
     order: 2,
   },
   {
-    name: '\u5348\u9910',
+    name: '午餐',
     time: '12:00-13:00',
-    type: '\u9910\u98f2',
-    location: '\u9152\u5e97\u9644\u8fd1',
-    coordinates: '114.0847,22.5474',
+    type: '餐飲',
+    location: '酒店附近',
     description: '',
     tips: '',
     price: '',
     order: 3,
   },
   {
-    name: '\u6df1\u5733\u2192\u9999\u6e2f\uff08\u904e\u95dc\uff09',
+    name: '深圳→香港（過關）',
     time: '13:00-15:00',
-    type: '\u4ea4\u901a',
-    location: '\u7f85\u6e56/\u798f\u7530\u53e3\u5cb8',
-    coordinates: '114.1113,22.5332',
-    description: '\u83ef\u5f37\u5317\u7ad9\u5730\u9435\u21921\u865f\u7dda\u5230\u7f85\u6e56\u7ad9\u21922\u904e\u95dc\u2192\u6e2f\u9435\u6771\u9435\u7dda\u5230\u65fa\u89d2\u6771\u7ad9\u2192\u8f49\u89c0\u5858\u7dda1\u7ad9\u5230\u65fa\u89d2\u7ad9',
-    tips: '\u904e\u95dc\u9810\u75591-1.5\u5c0f\u6642',
-    price: '\uffe530 + HK$70',
+    type: '交通',
+    location: '羅湖/福田口岸',
+    description: '華強北站地鐵→1號線到羅湖站→2過關→港鐵東鐵線到旺角東站→轉觀塘線1站到旺角站',
+    tips: '過關預留1-1.5小時',
+    price: '¥30 + HK$70',
     order: 4,
   },
   {
-    name: '\u91d1\u5821\u8cd3\u9928 Check-in',
+    name: '金堡賓館 Check-in',
     time: '15:00-15:30',
-    type: '\u4f4f\u5bbf',
-    location: '\u65fa\u89d2\u5f4c\u6566\u9053607\u865f\u65b0\u8208\u5927\u53c821\u6a132108\u5ba4',
-    coordinates: '114.1694,22.3193',
-    description: '\u9999\u6e2f2\u665a\u4f4f\u5bbf',
-    tips: '\u653e\u884c\u674e\u3001\u4f11\u606f',
+    type: '住宿',
+    location: '旺角彌敦道607號新興大廈21樓2108室',
+    description: '香港2晚住宿',
+    tips: '放行李、休息',
     price: '',
     order: 5,
   },
   {
-    name: '\u65fa\u89d2\u5468\u908a\u901b\u8857',
+    name: '旺角周邊逛街',
     time: '15:30-18:00',
-    type: '\u8cfc\u7269',
-    location: '\u65fa\u89d2',
-    coordinates: '114.1694,22.3193',
-    description: '\u5973\u4eba\u8857\u3001\u6ce2\u978b\u8857\u3001\u6717\u8c6a\u574a\u3001\u65fa\u89d2\u4e2d\u5fc3\u3001\u65b0\u4e16\u7d00\u5ee3\u5834\u3001\u897f\u6d0b\u83dc\u8857',
+    type: '購物',
+    location: '旺角',
+    description: '女人街、波鞋街、朗豪坊、旺角中心、新世紀廣場、西洋菜街',
     tips: '',
     price: '',
     order: 6,
-    mustBuy: ['\u7403\u978b', '\u904b\u52d5\u7528\u54c1'],
+    mustBuy: ['球鞋', '運動用品'],
   },
   {
-    name: '\u665a\u9910',
+    name: '晚餐',
     time: '18:00-19:30',
-    type: '\u9910\u98f2',
-    location: '\u65fa\u89d2',
-    coordinates: '114.1694,22.3193',
-    description: '\u63a8\u85a6\uff1a\u4e5d\u8a18\u725b\u8169\u3001\u862d\u82b3\u5712\u3001\u5bcc\u8a18\u7ca5\u54c1\u3001\u6fb3\u6d32\u725b\u5976\u516c\u53f8',
-    tips: '\u4e5d\u8a18\u725b\u8169\u8981\u6392\u968a',
+    type: '餐飲',
+    location: '旺角',
+    description: '推薦：九記牛腩、蘭芳園、富記粥品、澳洲牛奶公司',
+    tips: '九記牛腩要排隊',
     price: 'HK$100-150',
     order: 7,
-    mustEat: ['\u4e5d\u8a18\u725b\u8169', '\u862d\u82b3\u5712\u7d72\u896a\u5976\u8336'],
+    mustEat: ['九記牛腩', '蘭芳園絲襪奶茶'],
   },
   {
-    name: '\u5c16\u6c99\u5480\u7dad\u6e2f\u591c\u666f',
+    name: '尖沙咀維港夜景',
     time: '19:30-21:30',
-    type: '\u666f\u9ede',
-    location: '\u5c16\u6c99\u5480\u661f\u5149\u5927\u9053',
-    coordinates: '114.1722,22.2934',
-    description: '\u661f\u5149\u5927\u9053\u3001\u7dad\u591a\u5229\u4e9e\u6e2f\u300120:00\u5e7b\u5f69\u8a60\u9999\u6c5f\u71c8\u5149\u79c0\u3001\u5929\u661f\u5c0f\u8f2a',
-    tips: '\u5929\u661f\u5c0f\u8f2aHK$3.4\uff0c\u8d85\u4fbf\u5b9c',
+    type: '景點',
+    location: '尖沙咀星光大道',
+    description: '星光大道、維多利亞港、20:00幻彩詠香江燈光秀、天星小輪',
+    tips: '天星小輪HK$3.4，超便宜',
     price: 'HK$3.4',
     order: 8,
   },
   {
-    name: '\u65fa\u89d2\u5bb5\u591c',
+    name: '旺角宵夜',
     time: '22:00',
-    type: '\u9910\u98f2',
-    location: '\u65fa\u89d2',
-    coordinates: '114.1694,22.3193',
-    description: '\u6587\u8f1d\u58a8\u9b5a\u4e38\u3001\u5abd\u54aa\u96de\u86cb\u4ed4\u3001\u5bcc\u8a18\u7ca5\u54c1',
-    tips: '24\u5c0f\u6642\u71df\u696d\u9910\u5ef3\u5f88\u591a',
+    type: '餐飲',
+    location: '旺角',
+    description: '文輝墨魚丸、媽咪雞蛋仔、富記粥品',
+    tips: '24小時營業餐廳很多',
     price: '',
     order: 9,
-    mustEat: ['\u96de\u86cb\u4ed4', '\u58a8\u9b5a\u4e38'],
+    mustEat: ['雞蛋仔', '墨魚丸'],
   },
 ];
 
 // Day 4 活動
 const day4Activities = [
   {
-    name: '\u65e9\u9910',
+    name: '早餐',
     time: '09:00-10:00',
-    type: '\u9910\u98f2',
-    location: '\u65fa\u89d2',
-    coordinates: '114.1694,22.3193',
-    description: '\u63a8\u85a6\uff1a\u6fb3\u6d32\u725b\u5976\u516c\u53f8\u3001\u7fe0\u83ef\u9910\u5ef3',
-    tips: '\u6fb3\u6d32\u725b\u5976\u516c\u53f8\u8981\u6392\u968a\u4f46\u5f88\u503c\u5f97',
+    type: '餐飲',
+    location: '旺角',
+    description: '推薦：澳洲牛奶公司、翠華餐廳',
+    tips: '澳洲牛奶公司要排隊但很值得',
     price: 'HK$50-80',
     order: 1,
-    mustEat: ['\u7092\u86cb\u591a\u58eb'],
+    mustEat: ['炒蛋多士'],
   },
   {
-    name: '\u4e2d\u74b0\u5340\u57df\u6f2b\u6b65',
+    name: '中環區域漫步',
     time: '10:00-12:30',
-    type: '\u666f\u9ede',
-    location: '\u4e2d\u74b0',
-    coordinates: '114.1588,22.2812',
-    description: '\u4e2d\u74b0\u8857\u5e02\u3001\u77f3\u677f\u8857\u3001\u862d\u6842\u574a\u3001\u4e2d\u74b0\u6469\u5929\u8f2a\u3001\u9999\u6e2f\u6469\u5929\u8f2a\u78bc\u982d\u770b\u6d77',
-    tips: '\u77f3\u677f\u8857\u662f\u62cd\u7167\u6253\u5361\u8056\u5730',
+    type: '景點',
+    location: '中環',
+    description: '中環街市、石板街、蘭桂坊、中環摩天輪、香港摩天輪碼頭看海',
+    tips: '石板街是拍照打卡聖地',
     price: '',
     order: 2,
   },
   {
-    name: '\u5348\u9910',
+    name: '午餐',
     time: '12:30-14:00',
-    type: '\u9910\u98f2',
-    location: '\u4e2d\u74b0',
-    coordinates: '114.1588,22.2812',
-    description: '\u63a8\u85a6\uff1a\u93de\u8a18\u9152\u5bb6\u3001\u84ee\u9999\u6a13\u3001\u862d\u82b3\u5712\u3001IFC\u5546\u5834\u5404\u5f0f\u9910\u5ef3',
-    tips: '\u93de\u8a18\u9152\u5bb6\u662f\u7c73\u5176\u6797\u71d2\u9d5d',
+    type: '餐飲',
+    location: '中環',
+    description: '推薦：鏞記酒家、蓮香樓、蘭芳園、IFC商場各式餐廳',
+    tips: '鏞記酒家是米其林燒鵝',
     price: 'HK$100-200',
     order: 3,
-    mustEat: ['\u93de\u8a18\u71d2\u9d5d'],
+    mustEat: ['鏞記燒鵝'],
   },
   {
-    name: '\u9285\u9591\u7063\u8cfc\u7269',
+    name: '銅鑼灣購物',
     time: '14:00-18:00',
-    type: '\u8cfc\u7269',
-    location: '\u9285\u9591\u7063',
-    coordinates: '114.1849,22.2783',
-    description: '\u6642\u4ee3\u5ee3\u5834\u3001SOGO\u767e\u8ca8\u3001\u5e0c\u6148\u5ee3\u5834\u3001\u5229\u821e\u53f0\u5ee3\u5834',
+    type: '購物',
+    location: '銅鑼灣',
+    description: '時代廣場、SOGO百貨、希慈廣場、利舞台廣場',
     tips: '',
     price: '',
     order: 4,
   },
   {
-    name: '\u665a\u9910',
+    name: '晚餐',
     time: '18:00-19:30',
-    type: '\u9910\u98f2',
-    location: '\u9285\u9591\u7063',
-    coordinates: '114.1849,22.2783',
-    description: '\u63a8\u85a6\uff1a\u4f55\u6d2a\u8a18\u3001\u4e00\u862d\u62c9\u9eb5\u3001\u6dfb\u597d\u904b',
-    tips: '\u6dfb\u597d\u904b\u662f\u7c73\u5176\u6797\u9ede\u5fc3',
+    type: '餐飲',
+    location: '銅鑼灣',
+    description: '推薦：何洪記、一蘭拉麵、添好運',
+    tips: '添好運是米其林點心',
     price: 'HK$100-150',
     order: 5,
-    mustEat: ['\u6dfb\u597d\u904b\u9ede\u5fc3'],
+    mustEat: ['添好運點心'],
   },
   {
-    name: '\u592a\u5e73\u5c71\u9802\u770b\u591c\u666f',
+    name: '太平山頂看夜景',
     time: '19:30-21:30',
-    type: '\u666f\u9ede',
-    location: '\u592a\u5e73\u5c71\u9802',
-    coordinates: '114.1456,22.2759',
-    description: '\u5f9e\u9285\u9591\u7063\u5730\u9435\u5230\u4e2d\u74b0\u7ad9\u2192\u8f49\u5c71\u9802\u7e9c\u8eca\u4e0a\u592a\u5e73\u5c71\u2192\u51cc\u9704\u95a3\u770b\u591c\u666f\u2192\u5c71\u9802\u5ee3\u5834',
-    tips: '\u5c71\u9802\u7e9c\u8eca\u4f86\u56deHK$88',
+    type: '景點',
+    location: '太平山頂',
+    description: '從銅鑼灣地鐵到中環站→轉山頂纜車上太平山→凌霄閣看夜景→山頂廣場',
+    tips: '山頂纜車來回HK$88',
     price: 'HK$88',
     order: 6,
   },
   {
-    name: '\u56de\u65fa\u89d2\u5bb5\u591c\u3001\u901b\u8857',
+    name: '回旺角宵夜、逛街',
     time: '22:00',
-    type: '\u9910\u98f2',
-    location: '\u65fa\u89d2',
-    coordinates: '114.1694,22.3193',
+    type: '餐飲',
+    location: '旺角',
     description: '',
     tips: '',
     price: '',
@@ -383,106 +776,166 @@ const day4Activities = [
 // Day 5 活動
 const day5Activities = [
   {
-    name: '\u7761\u5230\u81ea\u7136\u9192\u3001\u9000\u623f',
+    name: '睡到自然醒、退房',
     time: '09:00-10:00',
-    type: '\u4f4f\u5bbf',
-    location: '\u91d1\u5821\u8cd3\u9928',
-    coordinates: '114.1694,22.3193',
-    description: '\u53ef\u5bc4\u653e\u884c\u674e\u5728\u6ac3\u53f0',
+    type: '住宿',
+    location: '金堡賓館',
+    description: '可寄放行李在櫃台',
     tips: '',
     price: '',
     order: 1,
   },
   {
-    name: '\u6700\u5f8c\u63a1\u8cfc\u4f34\u624b\u79ae',
+    name: '最後採購伴手禮',
     time: '10:00-12:00',
-    type: '\u8cfc\u7269',
-    location: '\u65fa\u89d2\u5f4c\u6566\u9053',
-    coordinates: '114.1694,22.3193',
-    description: '\u73cd\u59ae\u66f2\u5947\u3001\u5947\u83ef\u9905\u5bb6\u3001\u9245\u8a18\u624b\u4fe1\u3001\u4f4d\u5143\u5802\u3001\u5c48\u81e3\u6c0f/\u842c\u5be7',
-    tips: '\u73cd\u59ae\u66f2\u5947\u8981\u6392\u968a\uff0c\u5efa\u8b70\u65e9\u9ede\u53bb',
+    type: '購物',
+    location: '旺角彌敦道',
+    description: '珍妮曲奇、奇華餅家、鉅記手信、位元堂、屈臣氏/萬寧',
+    tips: '珍妮曲奇要排隊，建議早點去',
     price: '',
     order: 2,
-    mustBuy: ['\u73cd\u59ae\u66f2\u5947', '\u5947\u83ef\u9905\u5bb6', '\u9245\u8a18\u624b\u4fe1'],
+    mustBuy: ['珍妮曲奇', '奇華餅家', '鉅記手信'],
   },
   {
-    name: '\u5348\u9910',
+    name: '午餐',
     time: '12:00-13:00',
-    type: '\u9910\u98f2',
-    location: '\u65fa\u89d2\u6216\u6a5f\u5834',
-    coordinates: '114.1694,22.3193',
-    description: '\u65fa\u89d2\u96a8\u4fbf\u5403\u6216\u76f4\u63a5\u53bb\u6a5f\u5834\u5403',
+    type: '餐飲',
+    location: '旺角或機場',
+    description: '旺角隨便吃或直接去機場吃',
     tips: '',
     price: '',
     order: 3,
   },
   {
-    name: '\u56de\u91d1\u5821\u8cd3\u9928\u62ff\u884c\u674e',
+    name: '回金堡賓館拿行李',
     time: '13:00-13:10',
-    type: '\u4f4f\u5bbf',
-    location: '\u91d1\u5821\u8cd3\u9928',
-    coordinates: '114.1694,22.3193',
+    type: '住宿',
+    location: '金堡賓館',
     description: '',
     tips: '',
     price: '',
     order: 4,
   },
   {
-    name: 'A21\u5df4\u58eb\u5f80\u6a5f\u5834',
+    name: 'A21巴士往機場',
     time: '13:10-14:30',
-    type: '\u4ea4\u901a',
-    location: '\u5f4c\u6566\u9053\u5df4\u58eb\u7ad9',
-    coordinates: '114.1694,22.3193',
-    description: '\u8eca\u7a0b50-60\u5206\u9418\uff0c\u73ed\u6b6110-20\u5206\u9418\u4e00\u73ed',
+    type: '交通',
+    location: '彌敦道巴士站',
+    description: '車程50-60分鐘，班距10-20分鐘一班',
     tips: '',
     price: 'HK$33',
     order: 5,
   },
   {
-    name: '\u62b5\u9054\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
+    name: '抵達香港國際機場',
     time: '14:30',
-    type: '\u4ea4\u901a',
-    location: '\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
-    coordinates: '113.9145,22.3080',
+    type: '交通',
+    location: '香港國際機場',
     description: '',
     tips: '',
     price: '',
     order: 6,
   },
   {
-    name: '\u8fa6\u7406\u767b\u6a5f\u3001\u901b\u514d\u7a05\u5e97',
+    name: '辦理登機、逛免稅店',
     time: '14:30-17:00',
-    type: '\u8cfc\u7269',
-    location: '\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
-    coordinates: '113.9145,22.3080',
-    description: '\u63d0\u524d3\u5c0f\u6642\u8fa6\u7406\u767b\u6a5f\u624b\u7e8c\uff0c\u901b\u514d\u7a05\u5e97\u3001\u6a5f\u5834\u7f8e\u98df\u5ee3\u5834',
+    type: '購物',
+    location: '香港國際機場',
+    description: '提前3小時辦理登機手續，逛免稅店、機場美食廣場',
     tips: '',
     price: '',
     order: 7,
   },
   {
-    name: '\u8d77\u98db\u56de\u53f0\u5317',
+    name: '起飛回台北',
     time: '20:10',
-    type: '\u4ea4\u901a',
-    location: '\u9999\u6e2f\u570b\u969b\u6a5f\u5834',
-    coordinates: '113.9145,22.3080',
-    description: '\u822a\u73ed HB706',
+    type: '交通',
+    location: '香港國際機場',
+    description: '航班 HB706',
     tips: '',
     price: '',
     order: 8,
   },
   {
-    name: '\u62b5\u9054\u53f0\u5317\u6843\u5712\u6a5f\u5834',
+    name: '抵達台北桃園機場',
     time: '22:15',
-    type: '\u4ea4\u901a',
-    location: '\u53f0\u5317\u6843\u5712\u570b\u969b\u6a5f\u5834',
-    coordinates: '121.2332,25.0777',
-    description: '\u5e73\u5b89\u6b78\u4f86\uff01',
+    type: '交通',
+    location: '台北桃園國際機場',
+    description: '平安歸來！',
     tips: '',
     price: '',
     order: 9,
   },
 ];
+
+// ============================================
+// Create Functions
+// ============================================
+
+async function createFlight(data: typeof flights[0]) {
+  await notion.pages.create({
+    parent: { database_id: FLIGHTS_DB },
+    properties: {
+      Name: { title: [{ text: { content: data.name } }] },
+      FlightNo: { rich_text: [{ text: { content: data.flightNo } }] },
+      Date: { rich_text: [{ text: { content: data.date } }] },
+      DepartureAirport: { rich_text: [{ text: { content: data.departureAirport } }] },
+      ArrivalAirport: { rich_text: [{ text: { content: data.arrivalAirport } }] },
+      DepartureTime: { rich_text: [{ text: { content: data.departureTime } }] },
+      ArrivalTime: { rich_text: [{ text: { content: data.arrivalTime } }] },
+      CheckInCounter: { rich_text: [{ text: { content: data.checkInCounter } }] },
+      Gate: { rich_text: [{ text: { content: data.gate } }] },
+      Seat: { rich_text: [{ text: { content: data.seat } }] },
+      BaggageAllowance: { rich_text: [{ text: { content: data.baggageAllowance } }] },
+      BookingRef: { rich_text: [{ text: { content: data.bookingRef } }] },
+      Notes: { rich_text: [{ text: { content: data.notes } }] },
+      Order: { number: data.order },
+    },
+  });
+  console.log(`  Created flight: ${data.name} - ${data.flightNo}`);
+}
+
+async function createAttraction(data: typeof attractions[0]) {
+  await notion.pages.create({
+    parent: { database_id: ATTRACTIONS_DB },
+    properties: {
+      Name: { title: [{ text: { content: data.name } }] },
+      City: { select: { name: data.city } },
+      Type: { select: { name: data.type } },
+      Description: { rich_text: [{ text: { content: data.description } }] },
+      Tips: { rich_text: [{ text: { content: data.tips } }] },
+      Highlight: { rich_text: [{ text: { content: data.highlight } }] },
+      MustBuy: { multi_select: data.mustBuy.map(name => ({ name })) },
+      Order: { number: data.order },
+    },
+  });
+  console.log(`  Created attraction: ${data.name}`);
+}
+
+async function createTravelInfo(data: typeof travelInfo[0]) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const properties: any = {
+    Name: { title: [{ text: { content: data.name } }] },
+    Category: { select: { name: data.category } },
+    Content: { rich_text: [{ text: { content: data.content } }] },
+    SubContent: { rich_text: [{ text: { content: data.subContent } }] },
+    DateRange: { rich_text: [{ text: { content: data.dateRange } }] },
+    Phone: { rich_text: [{ text: { content: data.phone } }] },
+    Important: { checkbox: data.important },
+    Order: { number: data.order },
+  };
+
+  // City 是選填的
+  if (data.city) {
+    properties.City = { select: { name: data.city } };
+  }
+
+  await notion.pages.create({
+    parent: { database_id: TRAVELINFO_DB },
+    properties,
+  });
+  console.log(`  Created travel info: ${data.name}`);
+}
 
 async function createItinerary(data: typeof itineraries[0]) {
   const response = await notion.pages.create({
@@ -494,7 +947,7 @@ async function createItinerary(data: typeof itineraries[0]) {
       City: { select: { name: data.city } },
     },
   });
-  console.log(`Created itinerary: ${data.name}`);
+  console.log(`  Created itinerary: ${data.name}`);
   return response.id;
 }
 
@@ -507,7 +960,6 @@ async function createActivity(dayId: string, data: typeof day1Activities[0] & { 
       Time: { rich_text: [{ text: { content: data.time } }] },
       Type: { select: { name: data.type } },
       Location: { rich_text: [{ text: { content: data.location } }] },
-      Coordinates: { rich_text: [{ text: { content: data.coordinates } }] },
       Description: { rich_text: [{ text: { content: data.description } }] },
       Tips: { rich_text: [{ text: { content: data.tips } }] },
       Price: { rich_text: [{ text: { content: data.price } }] },
@@ -516,53 +968,71 @@ async function createActivity(dayId: string, data: typeof day1Activities[0] & { 
       ...(data.mustBuy ? { MustBuy: { multi_select: data.mustBuy.map(name => ({ name })) } } : {}),
     },
   });
-  console.log(`  Created activity: ${data.name}`);
+  console.log(`    Created activity: ${data.name}`);
 }
 
+// ============================================
+// Main
+// ============================================
+
 async function main() {
-  console.log('Starting Notion database seeding...\n');
+  console.log('🚀 Starting Notion database seeding...\n');
 
-  // Create itineraries and activities
+  // 1. 建立航班資料
+  console.log('✈️  Creating flights...');
+  for (const flight of flights) {
+    await createFlight(flight);
+  }
+
+  // 2. 建立景點/美食攻略
+  console.log('\n🏛️  Creating attractions...');
+  for (const attraction of attractions) {
+    await createAttraction(attraction);
+  }
+
+  // 3. 建立旅遊資訊
+  console.log('\n📋 Creating travel info...');
+  for (const info of travelInfo) {
+    await createTravelInfo(info);
+  }
+
+  // 4. 建立行程
+  console.log('\n📅 Creating itineraries...');
   const dayIds: string[] = [];
-
   for (const itinerary of itineraries) {
     const id = await createItinerary(itinerary);
     dayIds.push(id);
   }
 
-  console.log('\nCreating activities...\n');
+  // 5. 建立活動
+  console.log('\n📍 Creating activities...');
 
-  // Day 1
-  console.log('Day 1 activities:');
+  console.log('  Day 1:');
   for (const activity of day1Activities) {
     await createActivity(dayIds[0], activity);
   }
 
-  // Day 2
-  console.log('Day 2 activities:');
+  console.log('  Day 2:');
   for (const activity of day2Activities) {
     await createActivity(dayIds[1], activity);
   }
 
-  // Day 3
-  console.log('Day 3 activities:');
+  console.log('  Day 3:');
   for (const activity of day3Activities) {
     await createActivity(dayIds[2], activity);
   }
 
-  // Day 4
-  console.log('Day 4 activities:');
+  console.log('  Day 4:');
   for (const activity of day4Activities) {
     await createActivity(dayIds[3], activity);
   }
 
-  // Day 5
-  console.log('Day 5 activities:');
+  console.log('  Day 5:');
   for (const activity of day5Activities) {
     await createActivity(dayIds[4], activity);
   }
 
-  console.log('\n\u2705 Notion database seeding completed!');
+  console.log('\n✅ Notion database seeding completed!');
 }
 
 main().catch(console.error);

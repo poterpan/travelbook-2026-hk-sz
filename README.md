@@ -145,7 +145,7 @@ AMAP_WEB_KEY=your_amap_web_key
 ### 4. 初始化範例資料（選用）
 
 ```bash
-npx ts-node scripts/seed-notion.ts
+npx tsx scripts/seed-notion.ts
 ```
 
 此腳本會依據 `TRIP.md` 的行程資料自動建立 Notion 頁面。

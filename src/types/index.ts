@@ -26,13 +26,50 @@ export interface Activity {
   order: number;
 }
 
+// 航班資訊
+export interface Flight {
+  id: string;
+  name: string; // 去程/回程
+  flightNo: string;
+  date: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureTime: string;
+  arrivalTime: string;
+  checkInCounter: string;
+  gate: string;
+  seat: string;
+  baggageAllowance: string;
+  bookingRef: string;
+  notes: string;
+  order: number;
+}
+
+// 景點/美食攻略
+export interface Attraction {
+  id: string;
+  name: string;
+  city: 'shenzhen' | 'hongkong';
+  type: 'attraction' | 'shopping' | 'restaurant';
+  description: string;
+  tips: string;
+  highlight: string;
+  mustBuy: string[];
+  order: number;
+}
+
 // 旅遊資訊
 export interface TravelInfo {
   id: string;
   name: string;
-  category: 'flight' | 'hotel' | 'emergency' | 'souvenir' | 'notice' | 'clothing';
+  category: 'hotel' | 'emergency' | 'souvenir' | 'notice' | 'clothing';
   content: string;
+  subContent: string;
+  city: 'shenzhen' | 'hongkong' | '';
+  dateRange: string;
+  phone: string;
   important: boolean;
+  order: number;
 }
 
 // 天氣資料

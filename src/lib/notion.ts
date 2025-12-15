@@ -1,5 +1,5 @@
 import { Client } from '@notionhq/client';
-import type { Itinerary, Activity, TravelInfo } from '@/types';
+import type { Itinerary, Activity, Flight, Attraction, TravelInfo } from '@/types';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -7,6 +7,8 @@ const notion = new Client({
 
 const ITINERARY_DB = process.env.NOTION_ITINERARY_DB!;
 const ACTIVITIES_DB = process.env.NOTION_ACTIVITIES_DB!;
+const FLIGHTS_DB = process.env.NOTION_FLIGHTS_DB!;
+const ATTRACTIONS_DB = process.env.NOTION_ATTRACTIONS_DB!;
 const TRAVELINFO_DB = process.env.NOTION_TRAVELINFO_DB!;
 
 // Helper to safely get property values
@@ -193,29 +195,104 @@ export async function getAllActivities(): Promise<Activity[]> {
   });
 }
 
+// 取得航班資訊
+export async function getFlights(): Promise<Flight[]> {
+  const response = await notion.databases.query({
+    database_id: FLIGHTS_DB,
+    sorts: [{ property: 'Order', direction: 'ascending' }],
+  });
+
+  return response.results.map((page) => {
+    const props = (page as { properties: Record<string, unknown> }).properties;
+    return {
+      id: page.id,
+      name: getTextProperty(props.Name),
+      flightNo: getTextProperty(props.FlightNo),
+      date: getTextProperty(props.Date),
+      departureAirport: getTextProperty(props.DepartureAirport),
+      arrivalAirport: getTextProperty(props.ArrivalAirport),
+      departureTime: getTextProperty(props.DepartureTime),
+      arrivalTime: getTextProperty(props.ArrivalTime),
+      checkInCounter: getTextProperty(props.CheckInCounter),
+      gate: getTextProperty(props.Gate),
+      seat: getTextProperty(props.Seat),
+      baggageAllowance: getTextProperty(props.BaggageAllowance),
+      bookingRef: getTextProperty(props.BookingRef),
+      notes: getTextProperty(props.Notes),
+      order: getNumberProperty(props.Order),
+    };
+  });
+}
+
+// 取得景點/美食攻略
+export async function getAttractions(): Promise<Attraction[]> {
+  const response = await notion.databases.query({
+    database_id: ATTRACTIONS_DB,
+    sorts: [{ property: 'Order', direction: 'ascending' }],
+  });
+
+  return response.results.map((page) => {
+    const props = (page as { properties: Record<string, unknown> }).properties;
+    const cityMap: Record<string, 'shenzhen' | 'hongkong'> = {
+      '深圳': 'shenzhen',
+      '香港': 'hongkong',
+    };
+    const typeMap: Record<string, Attraction['type']> = {
+      '景點': 'attraction',
+      '購物': 'shopping',
+      '餐廳': 'restaurant',
+    };
+    const cityName = getSelectProperty(props.City);
+    const typeName = getSelectProperty(props.Type);
+
+    return {
+      id: page.id,
+      name: getTextProperty(props.Name),
+      city: cityMap[cityName] || 'hongkong',
+      type: typeMap[typeName] || 'attraction',
+      description: getTextProperty(props.Description),
+      tips: getTextProperty(props.Tips),
+      highlight: getTextProperty(props.Highlight),
+      mustBuy: getMultiSelectProperty(props.MustBuy),
+      order: getNumberProperty(props.Order),
+    };
+  });
+}
+
 // 取得旅遊資訊
 export async function getTravelInfo(): Promise<TravelInfo[]> {
   const response = await notion.databases.query({
     database_id: TRAVELINFO_DB,
+    sorts: [{ property: 'Order', direction: 'ascending' }],
   });
 
   return response.results.map((page) => {
     const props = (page as { properties: Record<string, unknown> }).properties;
     const categoryMap: Record<string, TravelInfo['category']> = {
-      '航班': 'flight',
       '住宿': 'hotel',
       '緊急聯絡': 'emergency',
       '伴手禮': 'souvenir',
       '注意事項': 'notice',
       '衣著建議': 'clothing',
     };
+    const cityMap: Record<string, 'shenzhen' | 'hongkong' | ''> = {
+      '深圳': 'shenzhen',
+      '香港': 'hongkong',
+    };
     const categoryName = getSelectProperty(props.Category);
+    const cityName = getSelectProperty(props.City);
+
     return {
       id: page.id,
       name: getTextProperty(props.Name),
       category: categoryMap[categoryName] || 'notice',
       content: getTextProperty(props.Content),
+      subContent: getTextProperty(props.SubContent),
+      city: cityMap[cityName] || '',
+      dateRange: getTextProperty(props.DateRange),
+      phone: getTextProperty(props.Phone),
       important: getCheckboxProperty(props.Important),
+      order: getNumberProperty(props.Order),
     };
   });
 }
