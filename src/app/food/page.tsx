@@ -37,12 +37,12 @@ export default function FoodPage() {
 
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           setCurrentLocation({ lng: longitude, lat: latitude });
           setLocationError(null);
 
-          // 判斷位置名稱
+          // 先顯示大略位置，再用逆地理編碼取得詳細地名
           if (latitude > 24) {
             setLocationName('台灣');
           } else if (longitude > 114.15) {
@@ -51,6 +51,8 @@ export default function FoodPage() {
             setLocationName('深圳');
           }
 
+          // 取得詳細地名
+          fetchLocationName(longitude, latitude);
           fetchRestaurants(longitude, latitude);
         },
         (err) => {
@@ -79,6 +81,21 @@ export default function FoodPage() {
       setLocationError('此瀏覽器不支援定位，請選擇城市');
       setLocationName('請選擇城市');
       setLoading(false);
+    }
+  };
+
+  const fetchLocationName = async (lng: number, lat: number) => {
+    try {
+      const res = await fetch(`/api/geocode?lng=${lng}&lat=${lat}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.shortName) {
+          setLocationName(data.shortName);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch location name:', error);
+      // 保持原有的大略位置名稱
     }
   };
 
