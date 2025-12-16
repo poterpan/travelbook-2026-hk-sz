@@ -51,7 +51,7 @@ src/
 
 ### Notion 資料庫結構
 
-本專案使用 3 個 Notion 資料庫：
+本專案使用 5 個 Notion 資料庫：
 
 #### 1. Itinerary（行程總覽）
 
@@ -79,14 +79,51 @@ src/
 | Price | Text | 價格資訊 |
 | Order | Number | 排序順序 |
 
-#### 3. TravelInfo（旅遊資訊）
+#### 3. Flights（航班資訊）
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| Name | Title | 航班名稱：去程 / 回程 |
+| FlightNo | Text | 航班號碼，如 UO115 |
+| Date | Text | 日期，如 2026-01-28 |
+| DepartureAirport | Text | 出發機場，如「台北桃園 TPE T1」 |
+| ArrivalAirport | Text | 抵達機場 |
+| DepartureTime | Text | 出發時間，如 17:40 |
+| ArrivalTime | Text | 抵達時間 |
+| CheckInCounter | Text | 報到櫃台 |
+| Gate | Text | 登機門 |
+| Seat | Text | 座位 |
+| BaggageAllowance | Text | 行李額度 |
+| BookingRef | Text | 訂位代號（⚠️ 若網站公開請隱藏或去識別化） |
+| Notes | Text | 備註 |
+| Order | Number | 排序順序 |
+
+#### 4. Attractions（景點/美食攻略）
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| Name | Title | 名稱 |
+| City | Select | 城市：深圳 / 香港 |
+| Type | Select | 類型：景點 / 購物 / 餐廳 |
+| Description | Text | 描述 |
+| Tips | Text | 小提示 |
+| Highlight | Text | 亮點標籤 |
+| MustBuy | Multi-select | 必買清單 |
+| Order | Number | 排序順序 |
+
+#### 5. TravelInfo（旅遊資訊）
 
 | 欄位 | 類型 | 說明 |
 |------|------|------|
 | Name | Title | 資訊名稱 |
-| Category | Select | 類別：flight / hotel / emergency / souvenir / notice / clothing |
+| Category | Select | 類別：住宿 / 緊急聯絡 / 伴手禮 / 注意事項 / 衣著建議 |
 | Content | Text | 內容 |
+| SubContent | Text | 副內容（如地址） |
+| City | Select | 城市：深圳 / 香港（選填） |
+| DateRange | Text | 日期範圍（如「1/28-1/30」） |
+| Phone | Text | 電話號碼 |
 | Important | Checkbox | 是否重要 |
+| Order | Number | 排序順序 |
 
 ### 資料流程圖
 
@@ -123,6 +160,8 @@ cp .env.example .env.local
 NOTION_TOKEN=your_notion_integration_token
 NOTION_ITINERARY_DB=your_itinerary_database_id
 NOTION_ACTIVITIES_DB=your_activities_database_id
+NOTION_FLIGHTS_DB=your_flights_database_id
+NOTION_ATTRACTIONS_DB=your_attractions_database_id
 NOTION_TRAVELINFO_DB=your_travelinfo_database_id
 
 # 和風天氣
@@ -137,7 +176,7 @@ AMAP_WEB_KEY=your_amap_web_key
 
 ### 3. 建立 Notion 資料庫
 
-1. 在 Notion 建立 3 個資料庫（結構如上）
+1. 在 Notion 建立 5 個資料庫（結構如上）
 2. 建立 [Notion Integration](https://www.notion.so/my-integrations)
 3. 將 Integration 連結到資料庫（點擊資料庫右上角 ... → 連結）
 4. 複製 Database ID（從資料庫 URL 取得，格式為 32 位元字串）
@@ -195,10 +234,13 @@ const TEST_NOW: string | null = null;
 |------|------|------|
 | `/api/itinerary` | GET | 取得所有行程日期 |
 | `/api/activities?dayId={id}` | GET | 取得特定日期的活動 |
+| `/api/flights` | GET | 取得航班資訊 |
+| `/api/attractions` | GET | 取得景點/美食攻略 |
+| `/api/travelinfo` | GET | 取得旅遊資訊 |
 | `/api/weather?city={city}` | GET | 取得城市天氣（shenzhen/hongkong） |
 | `/api/exchange` | GET | 取得台銀即時匯率（HKD、CNY） |
 | `/api/restaurants?lng={lng}&lat={lat}` | GET | 搜尋附近餐廳 |
-| `/api/travelinfo` | GET | 取得旅遊資訊 |
+| `/api/geocode?lng={lng}&lat={lat}` | GET | 逆地理編碼（座標轉地名） |
 
 ## 外部服務申請
 
